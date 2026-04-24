@@ -171,6 +171,9 @@
             margin-top: 10px; opacity: 0.7;
         }
 
+        /* 症状トグル（赤） */
+        .tog-sym input:checked + .tog-track { background: var(--danger); }
+
         /* Save button */
         .btn-save {
             width: 100%; padding: 15px;
@@ -302,6 +305,45 @@
                        oninput="onBodyScoreChange(this.value)">
                 <div class="range-labels"><span>0</span><span>50</span><span>100</span></div>
                 <p class="score-hint">最高の状態を100点として今日の体調を入力してください</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 症状 -->
+    <div class="card">
+        <div class="card-hdr">症状（あればオン）</div>
+        <div class="card-body">
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">🤕</span><span class="frow-label">頭</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symHead"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">🤢</span><span class="frow-label">お腹</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symStomach"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">🦴</span><span class="frow-label">腰</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symBack"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">🦵</span><span class="frow-label">足</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symLeg"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">😮</span><span class="frow-label">のど</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symThroat"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">😷</span><span class="frow-label">咳</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symCough"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">🤧</span><span class="frow-label">鼻水</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symRunnyNose"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">😬</span><span class="frow-label">口内炎</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symMouthUlcer"><span class="tog-track"></span></label>
             </div>
         </div>
     </div>
@@ -727,6 +769,16 @@ function renderToday() {
         refreshBodyScoreDisplay();
     }
 
+    // 症状
+    document.getElementById('symHead').checked       = !!entry.symHead;
+    document.getElementById('symStomach').checked    = !!entry.symStomach;
+    document.getElementById('symBack').checked       = !!entry.symBack;
+    document.getElementById('symLeg').checked        = !!entry.symLeg;
+    document.getElementById('symThroat').checked     = !!entry.symThroat;
+    document.getElementById('symCough').checked      = !!entry.symCough;
+    document.getElementById('symRunnyNose').checked  = !!entry.symRunnyNose;
+    document.getElementById('symMouthUlcer').checked = !!entry.symMouthUlcer;
+
     // Toggles
     document.getElementById('measured').checked      = !!entry.measured;
     document.getElementById('medFebuxostat').checked = !!entry.medFebuxostat;
@@ -762,6 +814,14 @@ function readForm() {
         measured:      document.getElementById('measured').checked,
         weight:        parseFloat(document.getElementById('weight').value)    || null,
         bodyFat:       parseFloat(document.getElementById('bodyFat').value)   || null,
+        symHead:       document.getElementById('symHead').checked,
+        symStomach:    document.getElementById('symStomach').checked,
+        symBack:       document.getElementById('symBack').checked,
+        symLeg:        document.getElementById('symLeg').checked,
+        symThroat:     document.getElementById('symThroat').checked,
+        symCough:      document.getElementById('symCough').checked,
+        symRunnyNose:  document.getElementById('symRunnyNose').checked,
+        symMouthUlcer: document.getElementById('symMouthUlcer').checked,
         medFebuxostat: document.getElementById('medFebuxostat').checked,
         medKafun:      document.getElementById('medKafun').checked,
         medVitamin:    document.getElementById('medVitamin').checked,
@@ -846,6 +906,41 @@ function renderScore() {
             <div class="stat-card"><div class="n">${streak}</div><div class="l">連続記録日数</div></div>
             <div class="stat-card"><div class="n">${bestBody || '--'}</div><div class="l">体調最高点</div></div>
         </div>
+
+        ${(() => {
+            const SYM = [
+                { key:'symHead',       icon:'🤕', label:'頭' },
+                { key:'symStomach',    icon:'🤢', label:'お腹' },
+                { key:'symBack',       icon:'🦴', label:'腰' },
+                { key:'symLeg',        icon:'🦵', label:'足' },
+                { key:'symThroat',     icon:'😮', label:'のど' },
+                { key:'symCough',      icon:'😷', label:'咳' },
+                { key:'symRunnyNose',  icon:'🤧', label:'鼻水' },
+                { key:'symMouthUlcer', icon:'😬', label:'口内炎' },
+            ];
+            const active = SYM.filter(s => entry[s.key]);
+            if (active.length === 0) return `
+                <div class="card">
+                    <div class="card-hdr">症状</div>
+                    <div class="card-body" style="padding-top:12px;padding-bottom:12px;">
+                        <span style="font-size:14px;color:var(--success);font-weight:600;">✅ 症状なし</span>
+                    </div>
+                </div>`;
+            return `
+                <div class="card">
+                    <div class="card-hdr">症状</div>
+                    <div class="card-body" style="padding-top:12px;">
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                            ${active.map(s => `
+                                <span style="display:inline-flex;align-items:center;gap:4px;
+                                    background:#FEE2E2;color:#991B1B;border-radius:20px;
+                                    padding:5px 12px;font-size:13px;font-weight:600;">
+                                    ${s.icon} ${s.label}
+                                </span>`).join('')}
+                        </div>
+                    </div>
+                </div>`;
+        })()}
 
         <div class="card">
             <div class="card-hdr">習慣スコア内訳</div>
