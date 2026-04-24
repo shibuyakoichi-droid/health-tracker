@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>体調トラッカー</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="体調">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7C3AED">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --p: #7C3AED;
+            --p2: #6D28D9;
+            --p-light: #EDE9FE;
+            --s: #0EA5E9;
+            --bg: #F5F3FF;
+            --surface: #FFFFFF;
+            --text: #18181B;
+            --muted: #71717A;
+            --border: #E4E4E7;
+            --success: #22C55E;
+            --warn: #F59E0B;
+            --danger: #EF4444;
+            --nav-h: 68px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-h) + var(--safe-bottom));
+        }
+
+        /* ── Header ── */
+        .app-header {
+            background: linear-gradient(135deg, var(--p) 0%, var(--s) 100%);
+            padding: 16px 20px 14px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+        .app-header h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
+        .app-header .sub { font-size: 12px; opacity: 0.8; margin-top: 1px; }
+        .hdr-badge {
+            text-align: center;
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(4px);
+            border-radius: 14px;
+            padding: 6px 16px;
+            min-width: 80px;
+        }
+        .hdr-badge .n { font-size: 28px; font-weight: 900; line-height: 1; }
+        .hdr-badge .l { font-size: 10px; opacity: 0.85; letter-spacing: 0.03em; }
+
+        /* ── Views ── */
+        .view { display: none; padding: 14px 14px 0; }
+        .view.active { display: block; }
+
+        /* ── Bottom Nav ── */
+        .app-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: calc(var(--nav-h) + var(--safe-bottom));
+            background: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+            z-index: 50;
+            padding-bottom: var(--safe-bottom);
+        }
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            transition: color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .nav-btn.active { color: var(--p); }
+        .nav-btn svg { width: 22px; height: 22px; stroke-width: 2.2; }
+        .nav-btn .dot {
+            position: absolute;
+            width: 5px; height: 5px;
+            background: var(--danger);
+            border-radius: 50%;
+            top: 6px; right: calc(50% - 14px);
+        }
+        .nav-btn { position: relative; }
+
+        /* ── Card ── */
+        .card {
+            background: white;
+            border-radius: 18px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+        }
+        .card-hdr {
+            padding: 13px 16px 0;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .card-body { padding: 6px 16px 14px; }
+
+        /* ── Form Row ── */
+        .frow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 0;
+            border-bottom: 1px solid #F4F4F5;
+            gap: 8px;
+        }
+        .frow:last-child { border-bottom: none; }
+        .frow-left {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex: 1;
+            min-width: 0;
+        }
+        .frow-icon { font-size: 19px; flex-shrink: 0; width: 26px; text-align: center; }
+        .frow-label { font-size: 14px; font-weight: 500; }
+        .pts-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--p);
+            background: var(--p-light);
+            padding: 2px 6px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .frow-right { flex-shrink: 0; }
+
+        /* ── Toggle ── */
+        .tog { position: relative; width: 46px; height: 25px; flex-shrink: 0; }
+        .tog input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .tog-track {
+            position: absolute; inset: 0;
+            background: #D4D4D8;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.25s;
+        }
+        .tog-track::before {
+            content: '';
+            position: absolute;
+            width: 19px; height: 19px;
+            left: 3px; top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        }
+        .tog input:checked + .tog-track { background: var(--p); }
+        .tog input:checked + .tog-track::before { transform: translateX(21px); }
+
+        /* ── Inputs ── */
+        .inp {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text);
+            background: #FAFAFA;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            -webkit-appearance: none;
+        }
+        .inp:focus { border-color: var(--p); background: white; }
+        .inp-t { width: 105px; }
+        .inp-n { width: 88px; text-align: right; }
+        .inp-full { width: 100%; margin-top: 8px; }
+
+        /* ── Chips ── */
+        .chips { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
+        .chip {
+            padding: 6px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: white;
+            color: var(--text);
+            transition: all 0.15s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .chip.on { background: var(--p); border-color: var(--p); color: white; }
+
+        /* ── Save Button ── */
+        .btn-save {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+            transition: transform 0.12s, box-shadow 0.12s;
+            margin: 4px 0 8px;
+            letter-spacing: 0.02em;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-save:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(124,58,237,0.2); }
+
+        /* ── Score View ── */
+        .score-big {
+            text-align: center;
+            padding: 24px 0 16px;
+        }
+        .score-num {
+            font-size: 88px;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--p), var(--s));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .score-denom { font-size: 22px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+        .score-grade { font-size: 30px; font-weight: 900; margin: 10px 0 3px; }
+        .score-grade-lbl { font-size: 15px; color: var(--muted); font-weight: 500; }
+
+        /* ── Score breakdown rows ── */
+        .srow {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F4F4F5;
+            gap: 8px;
+        }
+        .srow:last-child { border-bottom: none; }
+        .srow-icon { font-size: 17px; width: 24px; text-align: center; flex-shrink: 0; }
+        .srow-lbl { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .srow-bar-bg { width: 56px; height: 6px; background: #F4F4F5; border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+        .srow-bar { height: 100%; background: linear-gradient(90deg, var(--p), var(--s)); border-radius: 3px; transition: width 0.7s ease; }
+        .srow-pts { font-weight: 700; color: var(--p); font-size: 12px; min-width: 36px; text-align: right; flex-shrink: 0; }
+
+        /* ── Stat cards ── */
+        .stat-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .stat-card {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+        }
+        .stat-card .n { font-size: 26px; font-weight: 800; color: var(--p); line-height: 1; }
+        .stat-card .l { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+        /* ── Chart ── */
+        .chart-box { position: relative; height: 190px; margin: 4px 0 6px; }
+
+        /* ── Graph tabs ── */
+        .tab-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .tab-bar::-webkit-scrollbar { display: none; }
+        .tab-pill {
+            padding: 7px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-pill.on { background: var(--p); border-color: var(--p); color: white; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: calc(var(--nav-h) + var(--safe-bottom) + 14px);
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: #18181B;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 100;
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── Reminder banner ── */
+        .reminder {
+            background: linear-gradient(135deg, #FEF9C3, #FDE68A);
+            border: 1.5px solid #FCD34D;
+            border-radius: 14px;
+            padding: 11px 14px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Empty state ── */
+        .empty {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--muted);
+        }
+        .empty .ei { font-size: 52px; margin-bottom: 14px; }
+        .empty p { font-size: 14px; line-height: 1.7; }
+
+        /* ── Calendar heatmap preview ── */
+        .heat-row { display: flex; gap: 3px; flex-wrap: wrap; margin: 8px 0; }
+        .heat-cell {
+            width: calc((100% - 18px) / 7);
+            aspect-ratio: 1;
+            border-radius: 5px;
+            background: #F4F4F5;
+        }
+
+        /* ── Notification info ── */
+        .notif-info {
+            background: #F0FDF4;
+            border: 1.5px solid #86EFAC;
+            border-radius: 14px;
+            padding: 11px 14px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #166534;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .chip-wrap { width: 100%; padding: 2px 0 6px; }
+    </style>
+</head>
+<body>
+
+<header class="app-header">
+    <div>
+        <h1>体調トラッカー</h1>
+        <p class="sub" id="headerDate">読み込み中...</p>
+    </div>
+    <div class="hdr-badge" id="hdrBadge" style="display:none">
+        <div class="n" id="hdrScore">--</div>
+        <div class="l">今日の点数</div>
+    </div>
+</header>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════
+     TODAY VIEW
+══════════════════════════════════ -->
+<div class="view active" id="view-today">
+
+    <div class="reminder" id="reminderBanner" style="display:none">
+        ⏰ <span>今日の記録がまだです！記入しましょう。</span>
+    </div>
+
+    <!-- 測定 -->
+    <div class="card">
+        <div class="card-hdr">測定</div>
+        <div class="card-body">
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">⚖️</span>
+                    <span class="frow-label">体重・体脂肪率を測った</span>
+                    <span class="pts-badge">+5</span>
+                </div>
+                <div class="frow-right">
+                    <label class="tog">
+                        <input type="checkbox" id="measured" onchange="onMeasuredChange()">
+                        <span class="tog-track"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="weightRow" style="display:none">
+                <div class="frow">
+                    <div class="frow-left">
+                        <span class="frow-icon">🏋️</span>
+                        <span class="frow-label">体重 (kg)</span>
+                    </div>
+                    <input type="number" class="inp inp-n" id="weight" placeholder="70.0" step="0.1" min="30" max="250">
+                </div>
+                <div class="frow">
+                    <div class="frow-left">
+                        <span class="frow-icon">📊</span>
+                        <span class="frow-label">体脂肪率 (%)</span>
+                    </div>
+                    <input type="number" class="inp inp-n" id="bodyFat" placeholder="18.0" step="0.1" min="1" max="70">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 健康習慣 -->
+    <div class="card">
+        <div class="card-hdr">健康習慣</div>
+        <div class="card-body">
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">💊</span>
+                    <span class="frow-label">薬を飲んだ</span>
+                    <span class="pts-badge">+10</span>
+                </div>
+                <label class="tog"><input type="checkbox" id="tookMeds"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">💧</span>
+                    <span class="frow-label">水を2リットル飲んだ</span>
+                    <span class="pts-badge">+10</span>
+                </div>
+                <label class="tog"><input type="checkbox" id="water2L"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">🏋️</span>
+                    <span class="frow-label">筋トレした</span>
+                    <span class="pts-badge">+10</span>
+                </div>
+                <label class="tog"><input type="checkbox" id="workout"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">🧘</span>
+                    <span class="frow-label">ストレッチした</span>
+                    <span class="pts-badge">+10</span>
+                </div>
+                <label class="tog"><input type="checkbox" id="stretching"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">🧖</span>
+                    <span class="frow-label">サウナに入った</span>
+                    <span class="pts-badge">+5</span>
+                </div>
+                <label class="tog"><input type="checkbox" id="sauna"><span class="tog-track"></span></label>
+            </div>
+        </div>
+    </div>
+
+    <!-- 睡眠 -->
+    <div class="card">
+        <div class="card-hdr">睡眠</div>
+        <div class="card-body">
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">🌙</span>
+                    <span class="frow-label">昨日の就寝時間</span>
+                    <span class="pts-badge">+10</span>
+                </div>
+                <input type="time" class="inp inp-t" id="sleepTime">
+            </div>
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">☀️</span>
+                    <span class="frow-label">今日の起床時間</span>
+                    <span class="pts-badge">+5</span>
+                </div>
+                <input type="time" class="inp inp-t" id="wakeTime">
+            </div>
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">📵</span>
+                    <span class="frow-label">スマホをやめた時間</span>
+                    <span class="pts-badge">+5</span>
+                </div>
+                <input type="time" class="inp inp-t" id="phoneFreeTime">
+            </div>
+        </div>
+    </div>
+
+    <!-- 活動 -->
+    <div class="card">
+        <div class="card-hdr">活動</div>
+        <div class="card-body">
+            <div class="frow">
+                <div class="frow-left">
+                    <span class="frow-icon">👟</span>
+                    <span class="frow-label">歩数</span>
+                    <span class="pts-badge">+15</span>
+                </div>
+                <input type="number" class="inp inp-n" id="steps" placeholder="8000" min="0" max="99999">
+            </div>
+        </div>
+    </div>
+
+    <!-- 食事・飲み物 -->
+    <div class="card">
+        <div class="card-hdr">食事・飲み物</div>
+        <div class="card-body">
+            <div class="frow" style="flex-wrap: wrap; gap: 6px;">
+                <div class="frow-left">
+                    <span class="frow-icon">🍱</span>
+                    <span class="frow-label">食事の質</span>
+                    <span class="pts-badge">+5</span>
+                </div>
+                <div class="chip-wrap">
+                    <div class="chips" id="mealsChips">
+                        <div class="chip on" data-val="good" onclick="pickChip('meals','good',this)">😊 良かった</div>
+                        <div class="chip" data-val="ok" onclick="pickChip('meals','ok',this)">😐 まあまあ</div>
+                        <div class="chip" data-val="bad" onclick="pickChip('meals','bad',this)">😞 悪かった</div>
+                    </div>
+                </div>
+            </div>
+            <div class="frow">
+                <input type="text" class="inp inp-full" id="mealNote" placeholder="食べたもの（任意）">
+            </div>
+            <div class="frow" style="flex-wrap: wrap; gap: 6px;">
+                <div class="frow-left">
+                    <span class="frow-icon">🍺</span>
+                    <span class="frow-label">お酒</span>
+                    <span class="pts-badge">+10</span>
+                </div>
+                <div class="chip-wrap">
+                    <div class="chips" id="alcoholChips">
+                        <div class="chip on" data-val="none" onclick="pickChip('alcohol','none',this)">🚫 飲まなかった</div>
+                        <div class="chip" data-val="little" onclick="pickChip('alcohol','little',this)">🍷 少し</div>
+                        <div class="chip" data-val="lot" onclick="pickChip('alcohol','lot',this)">🍻 たくさん</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-save" onclick="saveToday()">💾 今日の記録を保存</button>
+
+</div>
+
+<!-- ══════════════════════════════════
+     SCORE VIEW
+══════════════════════════════════ -->
+<div class="view" id="view-score">
+    <div id="scoreContent">
+        <div class="empty">
+            <div class="ei">📋</div>
+            <p>「今日」タブで記録を入力すると<br>スコアが表示されます</p>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     GRAPH VIEW
+══════════════════════════════════ -->
+<div class="view" id="view-graph">
+    <div class="tab-bar" id="graphTabs">
+        <div class="tab-pill on" onclick="pickGraphTab('score',this)">スコア</div>
+        <div class="tab-pill" onclick="pickGraphTab('steps',this)">歩数</div>
+        <div class="tab-pill" onclick="pickGraphTab('weight',this)">体重</div>
+        <div class="tab-pill" onclick="pickGraphTab('sleep',this)">睡眠</div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="padding-top: 12px;">
+            <div class="chart-box"><canvas id="mainChart"></canvas></div>
+            <p id="chartDesc" style="font-size:12px;color:var(--muted);text-align:center;margin-top:2px;"></p>
+        </div>
+    </div>
+    <div id="graphStats"></div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="app-nav">
+    <button class="nav-btn active" id="nav-today" onclick="showView('today')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        今日
+        <div class="dot" id="navDot" style="display:none"></div>
+    </button>
+    <button class="nav-btn" id="nav-score" onclick="showView('score')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        スコア
+    </button>
+    <button class="nav-btn" id="nav-graph" onclick="showView('graph')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        グラフ
+    </button>
+</nav>
+
+<script>
+// ════════════════════════════════════
+// Storage
+// ════════════════════════════════════
+const KEY = 'healthTracker_v2';
+
+function loadAll() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
+    catch { return {}; }
+}
+function saveAll(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+
+function todayKey() {
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function getTodayEntry() { return loadAll()[todayKey()] || null; }
+
+// ════════════════════════════════════
+// Score
+// ════════════════════════════════════
+const ITEMS = [
+    { key:'measured',     max:5,  icon:'⚖️',  label:'体重・体脂肪測定' },
+    { key:'tookMeds',     max:10, icon:'💊',  label:'薬を飲んだ' },
+    { key:'sleepTime',    max:10, icon:'🌙',  label:'就寝時間' },
+    { key:'wakeTime',     max:5,  icon:'☀️',  label:'起床時間' },
+    { key:'steps',        max:15, icon:'👟',  label:'歩数' },
+    { key:'workout',      max:10, icon:'🏋️', label:'筋トレ' },
+    { key:'meals',        max:5,  icon:'🍱',  label:'食事の質' },
+    { key:'alcohol',      max:10, icon:'🍺',  label:'お酒なし' },
+    { key:'sauna',        max:5,  icon:'🧖',  label:'サウナ' },
+    { key:'stretching',   max:10, icon:'🧘',  label:'ストレッチ' },
+    { key:'water2L',      max:10, icon:'💧',  label:'水2リットル' },
+    { key:'phoneFreeTime',max:5,  icon:'📵',  label:'スマホやめた時間' },
+];
+
+function itemScore(key, val) {
+    if (val === null || val === undefined || val === '') return 0;
+    switch(key) {
+        case 'measured':   return val ? 5 : 0;
+        case 'tookMeds':   return val ? 10 : 0;
+        case 'workout':    return val ? 10 : 0;
+        case 'sauna':      return val ? 5 : 0;
+        case 'stretching': return val ? 10 : 0;
+        case 'water2L':    return val ? 10 : 0;
+        case 'meals':
+            return val==='good' ? 5 : val==='ok' ? 3 : 0;
+        case 'alcohol':
+            return val==='none' ? 10 : val==='little' ? 5 : 0;
+        case 'sleepTime': {
+            const [h,m] = val.split(':').map(Number);
+            const nh = h < 6 ? h + 24 : h; // treat 0-5 as next-day hours 24-29
+            if (nh <= 22) return 10;
+            if (nh <= 23) return 8;
+            if (nh <= 24) return 5;
+            if (nh <= 25) return 2;
+            return 0;
+        }
+        case 'wakeTime': {
+            const h = parseInt(val.split(':')[0]);
+            if (h >= 5 && h <= 7) return 5;
+            if (h === 8 || (h >= 3 && h < 5)) return 3;
+            if (h === 9) return 1;
+            return 0;
+        }
+        case 'steps': {
+            const s = parseInt(val, 10);
+            if (isNaN(s)) return 0;
+            if (s >= 10000) return 15;
+            if (s >= 8000)  return 12;
+            if (s >= 6000)  return 8;
+            if (s >= 4000)  return 4;
+            if (s >= 2000)  return 2;
+            return 0;
+        }
+        case 'phoneFreeTime': {
+            const h = parseInt(val.split(':')[0]);
+            if (h <= 20) return 5;
+            if (h === 21) return 4;
+            if (h === 22) return 2;
+            if (h === 23) return 1;
+            return 0;
+        }
+        default: return 0;
+    }
+}
+
+function calcScore(e) {
+    return ITEMS.reduce((t, it) => t + itemScore(it.key, e[it.key]), 0);
+}
+
+function gradeOf(s) {
+    if (s >= 90) return { g:'S', lbl:'最高！',        color:'#F59E0B' };
+    if (s >= 80) return { g:'A', lbl:'素晴らしい！',  color:'#22C55E' };
+    if (s >= 70) return { g:'B', lbl:'よくできました', color:'#0EA5E9' };
+    if (s >= 60) return { g:'C', lbl:'まあまあ',      color:'#6366F1' };
+    if (s >= 50) return { g:'D', lbl:'もう少し！',    color:'#F97316' };
+    return           { g:'E', lbl:'頑張ろう！',       color:'#EF4444' };
+}
+
+// ════════════════════════════════════
+// State
+// ════════════════════════════════════
+let mealsVal   = 'good';
+let alcoholVal = 'none';
+let curView    = 'today';
+let graphTab   = 'score';
+let chart      = null;
+
+// ════════════════════════════════════
+// View switching
+// ════════════════════════════════════
+function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-'+name).classList.add('active');
+    document.getElementById('nav-'+name).classList.add('active');
+    curView = name;
+    if (name === 'today') renderToday();
+    if (name === 'score') renderScore();
+    if (name === 'graph') renderGraph();
+}
+
+// ════════════════════════════════════
+// Today View
+// ════════════════════════════════════
+function onMeasuredChange() {
+    const show = document.getElementById('measured').checked;
+    document.getElementById('weightRow').style.display = show ? 'block' : 'none';
+}
+
+function pickChip(group, val, el) {
+    document.getElementById(group+'Chips').querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    if (group === 'meals')   mealsVal   = val;
+    if (group === 'alcohol') alcoholVal = val;
+}
+
+function restoreChips(group, val) {
+    document.getElementById(group+'Chips').querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('on', c.dataset.val === val);
+    });
+}
+
+function renderToday() {
+    const entry = getTodayEntry();
+    const after8 = new Date().getHours() >= 8;
+    document.getElementById('reminderBanner').style.display = (!entry && after8) ? 'flex' : 'none';
+    document.getElementById('navDot').style.display = (!entry && after8) ? 'block' : 'none';
+    if (!entry) return;
+
+    document.getElementById('measured').checked     = !!entry.measured;
+    document.getElementById('tookMeds').checked     = !!entry.tookMeds;
+    document.getElementById('water2L').checked      = !!entry.water2L;
+    document.getElementById('workout').checked      = !!entry.workout;
+    document.getElementById('stretching').checked   = !!entry.stretching;
+    document.getElementById('sauna').checked        = !!entry.sauna;
+    document.getElementById('weight').value         = entry.weight  ?? '';
+    document.getElementById('bodyFat').value        = entry.bodyFat ?? '';
+    document.getElementById('sleepTime').value      = entry.sleepTime     || '';
+    document.getElementById('wakeTime').value       = entry.wakeTime      || '';
+    document.getElementById('phoneFreeTime').value  = entry.phoneFreeTime || '';
+    document.getElementById('steps').value          = entry.steps > 0 ? entry.steps : '';
+    document.getElementById('mealNote').value       = entry.mealNote || '';
+    document.getElementById('weightRow').style.display = entry.measured ? 'block' : 'none';
+
+    mealsVal   = entry.meals   || 'good';
+    alcoholVal = entry.alcohol || 'none';
+    restoreChips('meals',   mealsVal);
+    restoreChips('alcohol', alcoholVal);
+}
+
+function readForm() {
+    return {
+        date:          todayKey(),
+        measured:      document.getElementById('measured').checked,
+        weight:        parseFloat(document.getElementById('weight').value)    || null,
+        bodyFat:       parseFloat(document.getElementById('bodyFat').value)   || null,
+        tookMeds:      document.getElementById('tookMeds').checked,
+        water2L:       document.getElementById('water2L').checked,
+        workout:       document.getElementById('workout').checked,
+        stretching:    document.getElementById('stretching').checked,
+        sauna:         document.getElementById('sauna').checked,
+        sleepTime:     document.getElementById('sleepTime').value      || null,
+        wakeTime:      document.getElementById('wakeTime').value       || null,
+        phoneFreeTime: document.getElementById('phoneFreeTime').value  || null,
+        steps:         parseInt(document.getElementById('steps').value)|| 0,
+        mealNote:      document.getElementById('mealNote').value.trim(),
+        meals:         mealsVal,
+        alcohol:       alcoholVal,
+    };
+}
+
+function saveToday() {
+    const entry = readForm();
+    entry.score = calcScore(entry);
+    const all = loadAll();
+    all[entry.date] = entry;
+    saveAll(all);
+    updateHeader(entry.score);
+    document.getElementById('reminderBanner').style.display = 'none';
+    document.getElementById('navDot').style.display = 'none';
+    showToast(`保存しました！今日のスコア: ${entry.score}点`);
+}
+
+// ════════════════════════════════════
+// Score View
+// ════════════════════════════════════
+function calcStreak(all) {
+    let s = 0;
+    for (let i = 0; i < 365; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        if (all[dateKey(d)]) s++;
+        else break;
+    }
+    return s;
+}
+
+function renderScore() {
+    const entry = getTodayEntry();
+    const el = document.getElementById('scoreContent');
+    if (!entry) {
+        el.innerHTML = `<div class="empty"><div class="ei">📋</div><p>「今日」タブで記録を入力すると<br>スコアが表示されます</p></div>`;
+        return;
+    }
+    const score = entry.score;
+    const { g, lbl, color } = gradeOf(score);
+    const all = loadAll();
+    const entries = Object.values(all).sort((a,b) => a.date.localeCompare(b.date));
+    const last7 = entries.slice(-7);
+    const avg7 = last7.length ? Math.round(last7.reduce((s,e) => s+(e.score||0),0)/last7.length) : 0;
+    const streak = calcStreak(all);
+    const best = entries.reduce((m,e) => Math.max(m,e.score||0), 0);
+
+    el.innerHTML = `
+        <div class="card">
+            <div class="card-body">
+                <div class="score-big">
+                    <div class="score-num">${score}</div>
+                    <div class="score-denom">/ 100点</div>
+                    <div class="score-grade" style="color:${color}">${g}ランク</div>
+                    <div class="score-grade-lbl">${lbl}</div>
+                </div>
+            </div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-card"><div class="n">${avg7}</div><div class="l">7日間平均</div></div>
+            <div class="stat-card"><div class="n">${streak}</div><div class="l">連続記録日数</div></div>
+            <div class="stat-card"><div class="n">${best}</div><div class="l">自己最高</div></div>
+        </div>
+        <div class="card">
+            <div class="card-hdr">内訳</div>
+            <div class="card-body">
+                ${ITEMS.map(it => {
+                    const got = itemScore(it.key, entry[it.key]);
+                    const pct = it.max > 0 ? Math.round(got/it.max*100) : 0;
+                    return `<div class="srow">
+                        <span class="srow-icon">${it.icon}</span>
+                        <span class="srow-lbl">${it.label}</span>
+                        <div class="srow-bar-bg"><div class="srow-bar" style="width:${pct}%"></div></div>
+                        <span class="srow-pts">${got}/${it.max}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+}
+
+// ════════════════════════════════════
+// Graph View
+// ════════════════════════════════════
+function pickGraphTab(tab, el) {
+    document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('on'));
+    el.classList.add('on');
+    graphTab = tab;
+    drawChart();
+}
+
+function getChartConfig() {
+    const all = loadAll();
+    const entries = Object.values(all).sort((a,b) => a.date.localeCompare(b.date));
+
+    if (graphTab === 'score') {
+        return {
+            labels: entries.map(e => e.date.slice(5)),
+            data:   entries.map(e => e.score || 0),
+            type: 'line', label: 'スコア', color: '#7C3AED',
+            desc: '日々の体調スコア（最大100点）', yMax: 100, yMin: 0,
+        };
+    }
+    if (graphTab === 'steps') {
+        return {
+            labels: entries.map(e => e.date.slice(5)),
+            data:   entries.map(e => e.steps || 0),
+            type: 'bar', label: '歩数', color: '#0EA5E9',
+            desc: '日々の歩数（目標ライン: 8,000歩）', yMin: 0, target: 8000,
+        };
+    }
+    if (graphTab === 'weight') {
+        const we = entries.filter(e => e.weight);
+        return {
+            labels: we.map(e => e.date.slice(5)),
+            data:   we.map(e => e.weight),
+            type: 'line', label: '体重 (kg)', color: '#22C55E',
+            desc: '体重の推移（kg）',
+        };
+    }
+    if (graphTab === 'sleep') {
+        const labels = [], data = [];
+        for (const e of entries) {
+            if (!e.sleepTime || !e.wakeTime) continue;
+            const [sh,sm] = e.sleepTime.split(':').map(Number);
+            const [wh,wm] = e.wakeTime.split(':').map(Number);
+            let sleep = sh*60+sm, wake = wh*60+wm;
+            if (wake <= sleep) wake += 1440;
+            const hrs = Math.round((wake-sleep)/60*10)/10;
+            if (hrs > 0 && hrs < 20) { data.push(hrs); labels.push(e.date.slice(5)); }
+        }
+        return { labels, data, type: 'bar', label: '睡眠時間 (h)', color: '#6366F1',
+            desc: '睡眠時間の推移（目標: 7〜8時間）', yMax: 12, yMin: 0, target: 7 };
+    }
+    return null;
+}
+
+function drawChart() {
+    const cfg = getChartConfig();
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    if (chart) { chart.destroy(); chart = null; }
+
+    if (!cfg || cfg.data.length === 0) {
+        document.getElementById('chartDesc').textContent = 'データがまだありません';
+        renderGraphStats(cfg);
+        return;
+    }
+
+    document.getElementById('chartDesc').textContent = cfg.desc;
+    const n = Math.min(cfg.labels.length, 30);
+    const labels = cfg.labels.slice(-n);
+    const data   = cfg.data.slice(-n);
+
+    const datasets = [{
+        label: cfg.label, data,
+        borderColor: cfg.color,
+        backgroundColor: cfg.type === 'bar' ? cfg.color+'99' : cfg.color+'1A',
+        fill: cfg.type === 'line',
+        tension: 0.4,
+        borderWidth: 2.5,
+        pointRadius: cfg.type === 'line' ? 3 : 0,
+        pointHoverRadius: 5,
+        borderRadius: cfg.type === 'bar' ? 6 : 0,
+    }];
+    if (cfg.target) {
+        datasets.push({
+            label: '目標', data: Array(n).fill(cfg.target),
+            borderColor: '#F59E0B', borderDash: [5,4],
+            borderWidth: 1.5, pointRadius: 0, fill: false, type: 'line',
+        });
+    }
+
+    chart = new Chart(ctx, {
+        type: cfg.type,
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: !!cfg.target, position: 'bottom', labels: { font:{size:11}, boxWidth:12 } },
+                tooltip: { mode:'index', intersect:false },
+            },
+            scales: {
+                x: {
+                    grid: { display:false },
+                    ticks: { font:{size:10}, maxTicksLimit:8, maxRotation:0 },
+                },
+                y: {
+                    grid: { color:'#F4F4F5' },
+                    ticks: { font:{size:11} },
+                    ...(cfg.yMax !== undefined ? { max: cfg.yMax } : {}),
+                    ...(cfg.yMin !== undefined ? { min: cfg.yMin } : {}),
+                },
+            },
+            interaction: { mode:'nearest', axis:'x', intersect:false },
+        },
+    });
+    renderGraphStats(cfg);
+}
+
+function renderGraphStats(cfg) {
+    const all = loadAll();
+    const entries = Object.values(all).sort((a,b) => a.date.localeCompare(b.date));
+    const el = document.getElementById('graphStats');
+
+    if (graphTab === 'score') {
+        const scores = entries.map(e => e.score||0).filter(s=>s>0);
+        if (!scores.length) { el.innerHTML=''; return; }
+        const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+        const max = Math.max(...scores), min = Math.min(...scores);
+        el.innerHTML = `<div class="stat-row">
+            <div class="stat-card"><div class="n">${avg}</div><div class="l">平均スコア</div></div>
+            <div class="stat-card"><div class="n">${max}</div><div class="l">最高スコア</div></div>
+            <div class="stat-card"><div class="n">${min}</div><div class="l">最低スコア</div></div>
+        </div>`;
+    } else if (graphTab === 'steps') {
+        const steps = entries.map(e=>e.steps||0).filter(s=>s>0);
+        if (!steps.length) { el.innerHTML=''; return; }
+        const avg = Math.round(steps.reduce((a,b)=>a+b,0)/steps.length);
+        const max = Math.max(...steps);
+        const hit = steps.filter(s=>s>=8000).length;
+        el.innerHTML = `<div class="stat-row">
+            <div class="stat-card"><div class="n">${(avg/1000).toFixed(1)}k</div><div class="l">平均歩数</div></div>
+            <div class="stat-card"><div class="n">${(max/1000).toFixed(1)}k</div><div class="l">最高歩数</div></div>
+            <div class="stat-card"><div class="n">${hit}日</div><div class="l">目標達成日</div></div>
+        </div>`;
+    } else if (graphTab === 'weight') {
+        const ws = entries.map(e=>e.weight).filter(Boolean);
+        if (!ws.length) { el.innerHTML=''; return; }
+        const avg = Math.round(ws.reduce((a,b)=>a+b,0)/ws.length*10)/10;
+        const max = Math.max(...ws), min = Math.min(...ws);
+        el.innerHTML = `<div class="stat-row">
+            <div class="stat-card"><div class="n">${avg}</div><div class="l">平均体重</div></div>
+            <div class="stat-card"><div class="n">${max}</div><div class="l">最大</div></div>
+            <div class="stat-card"><div class="n">${min}</div><div class="l">最小</div></div>
+        </div>`;
+    } else if (graphTab === 'sleep') {
+        const hs = [];
+        for (const e of entries) {
+            if (!e.sleepTime || !e.wakeTime) continue;
+            const [sh,sm] = e.sleepTime.split(':').map(Number);
+            const [wh,wm] = e.wakeTime.split(':').map(Number);
+            let sleep = sh*60+sm, wake = wh*60+wm;
+            if (wake <= sleep) wake += 1440;
+            const hrs = (wake-sleep)/60;
+            if (hrs > 0 && hrs < 20) hs.push(hrs);
+        }
+        if (!hs.length) { el.innerHTML=''; return; }
+        const avg = Math.round(hs.reduce((a,b)=>a+b,0)/hs.length*10)/10;
+        const max = Math.round(Math.max(...hs)*10)/10;
+        const hit = hs.filter(h=>h>=7&&h<=9).length;
+        el.innerHTML = `<div class="stat-row">
+            <div class="stat-card"><div class="n">${avg}h</div><div class="l">平均睡眠</div></div>
+            <div class="stat-card"><div class="n">${max}h</div><div class="l">最長睡眠</div></div>
+            <div class="stat-card"><div class="n">${hit}日</div><div class="l">理想睡眠日</div></div>
+        </div>`;
+    } else {
+        el.innerHTML = '';
+    }
+}
+
+function renderGraph() {
+    setTimeout(drawChart, 60);
+}
+
+// ════════════════════════════════════
+// Header
+// ════════════════════════════════════
+function updateHeader(score) {
+    if (score != null) {
+        document.getElementById('hdrBadge').style.display = 'block';
+        document.getElementById('hdrScore').textContent = score;
+    } else {
+        document.getElementById('hdrBadge').style.display = 'none';
+    }
+}
+
+// ════════════════════════════════════
+// Toast
+// ════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════════
+// Notifications (8am daily reminder)
+// ════════════════════════════════════
+async function initNotifications() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+        const res = await Notification.requestPermission();
+        if (res !== 'granted') return;
+    }
+    if (Notification.permission === 'granted') scheduleNext8am();
+}
+
+function scheduleNext8am() {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(8, 0, 0, 0);
+    if (now >= next) next.setDate(next.getDate() + 1);
+    const delay = next - now;
+    setTimeout(() => {
+        if (!getTodayEntry()) {
+            new Notification('体調トラッカー ⏰', {
+                body: '今日の体調記録をつけましょう！',
+                tag: 'daily-reminder',
+                renotify: true,
+            });
+        }
+        scheduleNext8am();
+    }, delay);
+}
+
+// ════════════════════════════════════
+// Init
+// ════════════════════════════════════
+function init() {
+    const now = new Date();
+    const wdays = ['日','月','火','水','木','金','土'];
+    document.getElementById('headerDate').textContent =
+        `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${wdays[now.getDay()]}）`;
+
+    const entry = getTodayEntry();
+    if (entry) {
+        updateHeader(entry.score);
+        renderToday();
+    } else {
+        const after8 = now.getHours() >= 8;
+        document.getElementById('reminderBanner').style.display = after8 ? 'flex' : 'none';
+        document.getElementById('navDot').style.display = after8 ? 'block' : 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    initNotifications();
+}
+
+init();
+</script>
+</body>
+</html>
