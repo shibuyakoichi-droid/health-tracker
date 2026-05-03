@@ -506,6 +506,20 @@
                     </div>
                     <input type="number" class="inp inp-n" id="bodyFat" placeholder="18.0" step="0.1" min="1" max="70">
                 </div>
+                <div class="frow">
+                    <div class="frow-left">
+                        <span class="frow-icon">💪</span>
+                        <span class="frow-label">筋肉量 (kg)</span>
+                    </div>
+                    <input type="number" class="inp inp-n" id="muscleMass" placeholder="50.0" step="0.1" min="10" max="150">
+                </div>
+                <div class="frow">
+                    <div class="frow-left">
+                        <span class="frow-icon">🫀</span>
+                        <span class="frow-label">内臓脂肪 (レベル)</span>
+                    </div>
+                    <input type="number" class="inp inp-n" id="visceralFat" placeholder="5" step="0.5" min="1" max="30">
+                </div>
             </div>
         </div>
     </div>
@@ -1110,8 +1124,10 @@ function resetForm() {
     document.getElementById('symNote').value = '';
     document.getElementById('measured').checked = false;
     document.getElementById('weightRow').style.display = 'none';
-    document.getElementById('weight').value    = '';
-    document.getElementById('bodyFat').value   = '';
+    document.getElementById('weight').value      = '';
+    document.getElementById('bodyFat').value     = '';
+    document.getElementById('muscleMass').value  = '';
+    document.getElementById('visceralFat').value = '';
     ['medFebuxostat','medKafun','medVitamin','medMineral','medDHA',
      'water2L','workout','stretching','sauna'].forEach(id => {
         document.getElementById(id).checked = false;
@@ -1170,8 +1186,10 @@ function renderToday() {
     document.getElementById('stretching').checked    = !!entry.stretching;
     document.getElementById('sauna').checked         = !!entry.sauna;
 
-    document.getElementById('weight').value          = entry.weight  ?? '';
-    document.getElementById('bodyFat').value         = entry.bodyFat ?? '';
+    document.getElementById('weight').value          = entry.weight      ?? '';
+    document.getElementById('bodyFat').value         = entry.bodyFat     ?? '';
+    document.getElementById('muscleMass').value      = entry.muscleMass  ?? '';
+    document.getElementById('visceralFat').value     = entry.visceralFat ?? '';
     document.getElementById('sleepTime').value       = entry.sleepTime     || '';
     document.getElementById('wakeTime').value        = entry.wakeTime      || '';
     document.getElementById('phoneFreeTime').value   = entry.phoneFreeTime || '';
@@ -1196,8 +1214,10 @@ function readForm() {
         date:          selectedDate,
         bodyScore:     bodyScoreTouched ? bodyScoreVal : null,
         measured:      document.getElementById('measured').checked,
-        weight:        parseFloat(document.getElementById('weight').value)    || null,
+        weight:        parseFloat(document.getElementById('weight').value)      || null,
         bodyFat:       parseFloat(document.getElementById('bodyFat').value)   || null,
+        muscleMass:    parseFloat(document.getElementById('muscleMass').value) || null,
+        visceralFat:   parseFloat(document.getElementById('visceralFat').value)|| null,
         symHead:       document.getElementById('symHead').checked,
         symStomach:    document.getElementById('symStomach').checked,
         symBack:       document.getElementById('symBack').checked,
