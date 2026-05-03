@@ -750,6 +750,15 @@
         </div>
     </div>
 
+    <!-- 日記 -->
+    <div class="card">
+        <div class="card-hdr">今日の日記</div>
+        <div class="card-body">
+            <textarea class="sym-note-area" id="diaryNote" style="min-height:100px;"
+                placeholder="今日何をしたか、気になったこと、感じたことなど自由に記入してください"></textarea>
+        </div>
+    </div>
+
     <button class="btn-save" onclick="saveToday()">💾 記録を保存</button>
 
 </div>
@@ -1139,6 +1148,7 @@ function resetForm() {
     document.getElementById('mealBreakfast').value = '';
     document.getElementById('mealLunch').value     = '';
     document.getElementById('mealDinner').value    = '';
+    document.getElementById('diaryNote').value     = '';
     restoreChips('meals',   'good');
     restoreChips('alcohol', 'none');
 }
@@ -1200,6 +1210,7 @@ function renderToday() {
     document.getElementById('mealBreakfast').value = entry.mealBreakfast || '';
     document.getElementById('mealLunch').value     = entry.mealLunch     || '';
     document.getElementById('mealDinner').value    = entry.mealDinner    || (entry.mealNote || '');
+    document.getElementById('diaryNote').value     = entry.diaryNote     || '';
 
     mealsVal   = entry.meals   || 'good';
     alcoholVal = entry.alcohol || 'none';
@@ -1246,6 +1257,7 @@ function readForm() {
         mealDinner:    document.getElementById('mealDinner').value.trim(),
         meals:         mealsVal,
         alcohol:       alcoholVal,
+        diaryNote:     document.getElementById('diaryNote').value.trim(),
     };
 }
 
@@ -1363,6 +1375,14 @@ function renderScore() {
                 ${entry.symNote ? `<div style="margin-top:10px;font-size:13px;color:var(--text);line-height:1.6;background:#FFF7ED;border-radius:10px;padding:10px 12px;">${entry.symNote}</div>` : ''}
             </div>
         </div>
+
+        ${entry.diaryNote ? `
+        <div class="card">
+            <div class="card-hdr">今日の日記</div>
+            <div class="card-body" style="padding-top:12px;">
+                <div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;">${entry.diaryNote}</div>
+            </div>
+        </div>` : ''}
 
         <div class="card">
             <div class="card-hdr">習慣スコア内訳</div>
