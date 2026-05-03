@@ -91,6 +91,7 @@
         .frow-left { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
         .frow-icon { font-size: 19px; flex-shrink: 0; width: 26px; text-align: center; }
         .frow-label { font-size: 14px; font-weight: 500; }
+        .frow-sublabel { font-size: 11px; color: var(--muted); font-weight: 400; }
         .pts-badge {
             font-size: 10px; font-weight: 700; color: var(--p);
             background: var(--p-light); padding: 2px 6px;
@@ -270,6 +271,109 @@
         .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
         .empty .ei { font-size: 52px; margin-bottom: 14px; }
         .empty p { font-size: 14px; line-height: 1.7; }
+
+        /* ── Date Selector ── */
+        .date-nav {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 0 6px;
+        }
+        .date-nav-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 1.5px solid var(--border); background: white;
+            font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            color: var(--text); transition: all 0.15s;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .date-nav-btn:active { background: var(--p-light); border-color: var(--p); }
+        .date-nav-btn:disabled { opacity: 0.3; cursor: default; }
+        .date-input-wrap { flex: 1; }
+        .date-input-wrap input[type="date"] {
+            width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+            padding: 8px 10px; font-size: 14px; font-family: inherit;
+            color: var(--text); background: #FAFAFA; outline: none;
+            -webkit-appearance: none;
+        }
+        .date-input-wrap input[type="date"]:focus { border-color: var(--p); background: white; }
+        .past-badge {
+            background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px; border: 1px solid #FCD34D;
+            margin-top: 6px; display: inline-block;
+        }
+
+        /* ── Sleep capture button ── */
+        .sleep-capture-btn {
+            padding: 6px 12px; border-radius: 20px;
+            background: #1E1B4B; color: white;
+            border: none; font-size: 12px; font-weight: 600;
+            cursor: pointer; white-space: nowrap; flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sleep-capture-btn:active { opacity: 0.8; }
+        .sleep-pre-fill {
+            font-size: 11px; color: var(--p); font-weight: 600;
+            padding: 4px 0 0; cursor: pointer; text-decoration: underline;
+        }
+
+        /* ── Meal suggestions ── */
+        .meal-block { width: 100%; }
+        .meal-inp-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+        .meal-inp-row .inp { flex: 1; margin-top: 0; }
+        .sugg-row {
+            display: none; flex-wrap: wrap; gap: 5px;
+            padding: 6px 0 2px; width: 100%;
+        }
+        .sugg-row.show { display: flex; }
+        .sugg-chip {
+            padding: 4px 10px; background: var(--p-light);
+            border: 1px solid #C4B5FD; border-radius: 14px;
+            font-size: 12px; color: var(--p); cursor: pointer;
+            font-weight: 500; transition: all 0.12s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sugg-chip:active { background: var(--p); color: white; }
+
+        /* ── Symptom note textarea ── */
+        .sym-note-area {
+            width: 100%; min-height: 72px; resize: vertical;
+            border: 1.5px solid var(--border); border-radius: 10px;
+            padding: 8px 10px; font-size: 13px; font-family: inherit;
+            color: var(--text); background: #FAFAFA; outline: none;
+            margin-top: 8px; transition: border-color 0.2s;
+        }
+        .sym-note-area:focus { border-color: var(--p); background: white; }
+
+        /* ── Export view ── */
+        .export-card {
+            background: white; border-radius: 18px; padding: 20px;
+            margin-bottom: 12px; box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+        }
+        .export-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .export-card p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+        .btn-export {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #059669, #0EA5E9);
+            color: white; border: none; border-radius: 14px;
+            font-size: 15px; font-weight: 700; font-family: inherit;
+            cursor: pointer; margin-bottom: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-export:active { opacity: 0.85; }
+        .save-path {
+            font-size: 11px; background: #F4F4F5; border-radius: 8px;
+            padding: 8px 12px; color: var(--muted); word-break: break-all;
+            line-height: 1.5;
+        }
+        .data-stats {
+            display: flex; gap: 8px; margin-bottom: 14px;
+        }
+        .data-stat {
+            flex: 1; text-align: center; background: var(--p-light);
+            border-radius: 12px; padding: 12px 8px;
+        }
+        .data-stat .n { font-size: 22px; font-weight: 800; color: var(--p); }
+        .data-stat .l { font-size: 11px; color: var(--muted); margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -292,6 +396,21 @@
 
     <div class="reminder" id="reminderBanner" style="display:none">
         ⏰ <span>今日の記録がまだです！記入しましょう。</span>
+    </div>
+
+    <!-- 日付選択 -->
+    <div class="card">
+        <div class="card-hdr">記録する日付</div>
+        <div class="card-body">
+            <div class="date-nav">
+                <button class="date-nav-btn" onclick="shiftDate(-1)">‹</button>
+                <div class="date-input-wrap">
+                    <input type="date" id="datePicker" onchange="onDatePickerChange(this.value)">
+                </div>
+                <button class="date-nav-btn" id="dateNextBtn" onclick="shiftDate(1)">›</button>
+            </div>
+            <div id="pastBadgeWrap"></div>
+        </div>
     </div>
 
     <!-- 体調点数 -->
@@ -344,6 +463,15 @@
             <div class="frow">
                 <div class="frow-left"><span class="frow-icon">😬</span><span class="frow-label">口内炎</span></div>
                 <label class="tog tog-sym"><input type="checkbox" id="symMouthUlcer"><span class="tog-track"></span></label>
+            </div>
+            <div class="frow">
+                <div class="frow-left"><span class="frow-icon">🦷</span><span class="frow-label">顎</span></div>
+                <label class="tog tog-sym"><input type="checkbox" id="symJaw"><span class="tog-track"></span></label>
+            </div>
+            <!-- 症状の詳細メモ -->
+            <div style="padding: 8px 0 4px;">
+                <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:2px;">症状の詳細メモ（任意）</div>
+                <textarea class="sym-note-area" id="symNote" placeholder="症状の状況、強さ、タイミングなど自由に記入してください"></textarea>
             </div>
         </div>
     </div>
@@ -472,18 +600,27 @@
     <div class="card">
         <div class="card-hdr">睡眠</div>
         <div class="card-body">
-            <div class="frow">
-                <div class="frow-left">
+            <div class="frow" style="flex-wrap:wrap; gap:6px;">
+                <div class="frow-left" style="flex-wrap:wrap;">
                     <span class="frow-icon">🌙</span>
-                    <span class="frow-label">昨日の就寝時間</span>
+                    <div>
+                        <div class="frow-label">就寝時刻</div>
+                        <div class="frow-sublabel">寝る直前に「今から寝る」を押すと便利</div>
+                    </div>
                     <span class="pts-badge">+10</span>
                 </div>
-                <input type="time" class="inp inp-t" id="sleepTime">
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <input type="time" class="inp inp-t" id="sleepTime">
+                        <button class="sleep-capture-btn" onclick="captureSleepNow()">🌙 今から寝る</button>
+                    </div>
+                    <div id="sleepPreFill" class="sleep-pre-fill" style="display:none" onclick="applySleepCapture()"></div>
+                </div>
             </div>
             <div class="frow">
                 <div class="frow-left">
                     <span class="frow-icon">☀️</span>
-                    <span class="frow-label">今日の起床時間</span>
+                    <span class="frow-label">起床時刻</span>
                     <span class="pts-badge">+5</span>
                 </div>
                 <input type="time" class="inp inp-t" id="wakeTime">
@@ -491,7 +628,7 @@
             <div class="frow">
                 <div class="frow-left">
                     <span class="frow-icon">📵</span>
-                    <span class="frow-label">スマホをやめた時間</span>
+                    <span class="frow-label">スマホをやめた時刻</span>
                     <span class="pts-badge">+5</span>
                 </div>
                 <input type="time" class="inp inp-t" id="phoneFreeTime">
@@ -518,6 +655,7 @@
     <div class="card">
         <div class="card-hdr">食事・飲み物</div>
         <div class="card-body">
+            <!-- 食事の質 -->
             <div class="frow" style="flex-wrap:wrap;gap:6px;">
                 <div class="frow-left">
                     <span class="frow-icon">🍱</span>
@@ -532,9 +670,55 @@
                     </div>
                 </div>
             </div>
-            <div class="frow">
-                <input type="text" class="inp inp-full" id="mealNote" placeholder="食べたもの（任意）">
+            <!-- 朝食 -->
+            <div class="frow" style="flex-wrap:wrap; align-items:flex-start;">
+                <div class="frow-left" style="padding-top:6px;">
+                    <span class="frow-icon">🌅</span>
+                    <span class="frow-label">朝食</span>
+                </div>
+                <div class="meal-block">
+                    <div class="meal-inp-row">
+                        <input type="text" class="inp" id="mealBreakfast" placeholder="食べたもの"
+                               oninput="showSugg('breakfast')"
+                               onfocus="showSugg('breakfast')"
+                               onblur="delayHideSugg('breakfast')">
+                    </div>
+                    <div class="sugg-row" id="sugg-breakfast"></div>
+                </div>
             </div>
+            <!-- 昼食 -->
+            <div class="frow" style="flex-wrap:wrap; align-items:flex-start;">
+                <div class="frow-left" style="padding-top:6px;">
+                    <span class="frow-icon">☀️</span>
+                    <span class="frow-label">昼食</span>
+                </div>
+                <div class="meal-block">
+                    <div class="meal-inp-row">
+                        <input type="text" class="inp" id="mealLunch" placeholder="食べたもの"
+                               oninput="showSugg('lunch')"
+                               onfocus="showSugg('lunch')"
+                               onblur="delayHideSugg('lunch')">
+                    </div>
+                    <div class="sugg-row" id="sugg-lunch"></div>
+                </div>
+            </div>
+            <!-- 夕食 -->
+            <div class="frow" style="flex-wrap:wrap; align-items:flex-start;">
+                <div class="frow-left" style="padding-top:6px;">
+                    <span class="frow-icon">🌙</span>
+                    <span class="frow-label">夕食</span>
+                </div>
+                <div class="meal-block">
+                    <div class="meal-inp-row">
+                        <input type="text" class="inp" id="mealDinner" placeholder="食べたもの"
+                               oninput="showSugg('dinner')"
+                               onfocus="showSugg('dinner')"
+                               onblur="delayHideSugg('dinner')">
+                    </div>
+                    <div class="sugg-row" id="sugg-dinner"></div>
+                </div>
+            </div>
+            <!-- お酒 -->
             <div class="frow" style="flex-wrap:wrap;gap:6px;">
                 <div class="frow-left">
                     <span class="frow-icon">🍺</span>
@@ -552,7 +736,7 @@
         </div>
     </div>
 
-    <button class="btn-save" onclick="saveToday()">💾 今日の記録を保存</button>
+    <button class="btn-save" onclick="saveToday()">💾 記録を保存</button>
 
 </div>
 
@@ -584,6 +768,30 @@
     <div id="graphStats"></div>
 </div>
 
+<!-- ════════════════ EXPORT ════════════════ -->
+<div class="view" id="view-export">
+    <div class="export-card">
+        <h3>📊 記録データの概要</h3>
+        <div class="data-stats" id="exportStats"></div>
+    </div>
+
+    <div class="export-card">
+        <h3>📥 JSONファイルに書き出す</h3>
+        <p>全記録データをJSONファイルとしてダウンロードします。体調管理責任者のcontextフォルダに保存することで、AIが調子の良い日・悪い日の前後1週間を分析してアドバイスできます。</p>
+        <button class="btn-export" onclick="exportData()">📥 データを書き出す（JSON）</button>
+        <div class="save-path">保存先（目安）：<br>C:\Users\81804\Claude経営\体調管理責任者\context\健康記録\health-data.json</div>
+    </div>
+
+    <div class="export-card">
+        <h3>🗑️ データ管理</h3>
+        <p style="color:#EF4444;">⚠️ 全データを削除します。この操作は元に戻せません。</p>
+        <button onclick="confirmClearData()"
+            style="width:100%;padding:12px;background:white;color:#EF4444;border:1.5px solid #EF4444;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">
+            全データを削除
+        </button>
+    </div>
+</div>
+
 <!-- Bottom Nav -->
 <nav class="app-nav">
     <button class="nav-btn active" id="nav-today" onclick="showView('today')">
@@ -599,17 +807,25 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         グラフ
     </button>
+    <button class="nav-btn" id="nav-export" onclick="showView('export')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        書出
+    </button>
 </nav>
 
 <script>
 // ════════ Storage ════════
 const KEY = 'healthTracker_v3';
+const MEAL_HIST_KEY = 'ht_mealHistory';
+const SLEEP_CAP_KEY = 'ht_sleepCapture';
+
 function loadAll() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } }
 function saveAll(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
 function pad(n) { return String(n).padStart(2,'0'); }
 function todayKey() { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-function getTodayEntry() { return loadAll()[todayKey()] || null; }
+function getEntryForDate(date) { return loadAll()[date] || null; }
+function getTodayEntry() { return getEntryForDate(selectedDate); }
 
 // ════════ Habit Score ════════
 const ITEMS = [
@@ -619,8 +835,8 @@ const ITEMS = [
     { key:'medVitamin',    max:2,  icon:'🟡',  label:'ビタミン' },
     { key:'medMineral',    max:2,  icon:'🔵',  label:'ミネラル' },
     { key:'medDHA',        max:2,  icon:'🐟',  label:'DHA' },
-    { key:'sleepTime',     max:10, icon:'🌙',  label:'就寝時間' },
-    { key:'wakeTime',      max:5,  icon:'☀️',  label:'起床時間' },
+    { key:'sleepTime',     max:10, icon:'🌙',  label:'就寝時刻' },
+    { key:'wakeTime',      max:5,  icon:'☀️',  label:'起床時刻' },
     { key:'steps',         max:15, icon:'👟',  label:'歩数' },
     { key:'workout',       max:10, icon:'🏋️', label:'筋トレ' },
     { key:'meals',         max:5,  icon:'🍱',  label:'食事の質' },
@@ -693,13 +909,138 @@ function gradeOf(s) {
 }
 
 // ════════ State ════════
-let mealsVal        = 'good';
-let alcoholVal      = 'none';
-let bodyScoreVal    = null;
+let mealsVal         = 'good';
+let alcoholVal       = 'none';
+let bodyScoreVal     = null;
 let bodyScoreTouched = false;
-let curView         = 'today';
-let graphTab        = 'body';
-let chart           = null;
+let curView          = 'today';
+let graphTab         = 'body';
+let chart            = null;
+let selectedDate     = todayKey();
+
+// ════════ Date Navigation ════════
+function initDatePicker() {
+    const dp = document.getElementById('datePicker');
+    dp.value = selectedDate;
+    dp.max   = todayKey();
+    updateDateUI();
+}
+
+function updateDateUI() {
+    const isToday = (selectedDate === todayKey());
+    document.getElementById('dateNextBtn').disabled = isToday;
+    const wrap = document.getElementById('pastBadgeWrap');
+    if (!isToday) {
+        const d = new Date(selectedDate + 'T00:00:00');
+        const wd = ['日','月','火','水','木','金','土'];
+        wrap.innerHTML = `<span class="past-badge">📅 ${d.getMonth()+1}月${d.getDate()}日（${wd[d.getDay()]}）の記録を編集中</span>`;
+    } else {
+        wrap.innerHTML = '';
+    }
+    checkSleepCapture();
+}
+
+function onDatePickerChange(val) {
+    if (!val || val > todayKey()) {
+        document.getElementById('datePicker').value = selectedDate;
+        return;
+    }
+    selectedDate = val;
+    updateDateUI();
+    renderToday();
+}
+
+function shiftDate(offset) {
+    const d = new Date(selectedDate + 'T00:00:00');
+    d.setDate(d.getDate() + offset);
+    const nk = dateKey(d);
+    if (nk > todayKey()) return;
+    selectedDate = nk;
+    document.getElementById('datePicker').value = selectedDate;
+    updateDateUI();
+    renderToday();
+}
+
+// ════════ Sleep Capture ════════
+function captureSleepNow() {
+    const now = new Date();
+    const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    localStorage.setItem(SLEEP_CAP_KEY, JSON.stringify({ date: todayKey(), time: timeStr }));
+    document.getElementById('sleepTime').value = timeStr;
+    showToast(`就寝時刻 ${timeStr} を記録しました 🌙`);
+    document.getElementById('sleepPreFill').style.display = 'none';
+}
+
+function getSleepCapture() {
+    try { return JSON.parse(localStorage.getItem(SLEEP_CAP_KEY)); } catch { return null; }
+}
+
+function checkSleepCapture() {
+    const cap = getSleepCapture();
+    const el  = document.getElementById('sleepPreFill');
+    if (!cap) { el.style.display = 'none'; return; }
+    const entry = getTodayEntry();
+    if (entry && entry.sleepTime) { el.style.display = 'none'; return; }
+    const sleepVal = document.getElementById('sleepTime').value;
+    if (sleepVal) { el.style.display = 'none'; return; }
+    el.textContent = `前回記録: ${cap.time}（タップで入力）`;
+    el.style.display = 'block';
+}
+
+function applySleepCapture() {
+    const cap = getSleepCapture();
+    if (!cap) return;
+    document.getElementById('sleepTime').value = cap.time;
+    document.getElementById('sleepPreFill').style.display = 'none';
+    showToast(`就寝時刻 ${cap.time} を入力しました`);
+}
+
+// ════════ Meal History / Suggestions ════════
+function getMealHistory() {
+    try { return JSON.parse(localStorage.getItem(MEAL_HIST_KEY)) || { breakfast:[], lunch:[], dinner:[] }; }
+    catch { return { breakfast:[], lunch:[], dinner:[] }; }
+}
+
+function addToMealHistory(type, val) {
+    const v = val.trim();
+    if (!v) return;
+    const h = getMealHistory();
+    if (!h[type]) h[type] = [];
+    h[type] = [v, ...h[type].filter(x => x !== v)].slice(0, 20);
+    localStorage.setItem(MEAL_HIST_KEY, JSON.stringify(h));
+}
+
+const suggTimers = {};
+function showSugg(type) {
+    clearTimeout(suggTimers[type]);
+    const h    = getMealHistory();
+    const list = h[type] || [];
+    const inp  = document.getElementById('meal' + type.charAt(0).toUpperCase() + type.slice(1));
+    const cur  = inp.value.trim().toLowerCase();
+    const filtered = cur
+        ? list.filter(x => x.toLowerCase().includes(cur))
+        : list;
+    const row  = document.getElementById('sugg-' + type);
+    if (filtered.length === 0) { row.classList.remove('show'); return; }
+    row.innerHTML = filtered.map(x =>
+        `<span class="sugg-chip" onmousedown="pickSugg('${type}','${x.replace(/'/g,"\\'")}')">
+            ${x}
+        </span>`
+    ).join('');
+    row.classList.add('show');
+}
+
+function pickSugg(type, val) {
+    const key = 'meal' + type.charAt(0).toUpperCase() + type.slice(1);
+    document.getElementById(key).value = val;
+    document.getElementById('sugg-' + type).classList.remove('show');
+}
+
+function delayHideSugg(type) {
+    suggTimers[type] = setTimeout(() => {
+        document.getElementById('sugg-' + type).classList.remove('show');
+    }, 200);
+}
 
 // ════════ Body Score ════════
 function onBodyScoreChange(v) {
@@ -731,9 +1072,10 @@ function showView(name) {
     document.getElementById('view-'+name).classList.add('active');
     document.getElementById('nav-'+name).classList.add('active');
     curView = name;
-    if (name === 'today') renderToday();
-    if (name === 'score') renderScore();
-    if (name === 'graph') renderGraph();
+    if (name === 'today')  renderToday();
+    if (name === 'score')  renderScore();
+    if (name === 'graph')  renderGraph();
+    if (name === 'export') renderExport();
 }
 
 // ════════ Today View ════════
@@ -754,22 +1096,58 @@ function restoreChips(group, val) {
         c.classList.toggle('on', c.dataset.val === val));
 }
 
-function renderToday() {
-    const entry = getTodayEntry();
-    const after8 = new Date().getHours() >= 8;
-    document.getElementById('reminderBanner').style.display = (!entry && after8) ? 'flex' : 'none';
-    document.getElementById('navDot').style.display = (!entry && after8) ? 'block' : 'none';
-    if (!entry) return;
+function resetForm() {
+    bodyScoreVal     = null;
+    bodyScoreTouched = false;
+    mealsVal         = 'good';
+    alcoholVal       = 'none';
+    document.getElementById('bodyScore').value = 70;
+    refreshBodyScoreDisplay();
+    ['symHead','symStomach','symBack','symLeg','symThroat','symCough',
+     'symRunnyNose','symMouthUlcer','symJaw'].forEach(id => {
+        document.getElementById(id).checked = false;
+    });
+    document.getElementById('symNote').value = '';
+    document.getElementById('measured').checked = false;
+    document.getElementById('weightRow').style.display = 'none';
+    document.getElementById('weight').value    = '';
+    document.getElementById('bodyFat').value   = '';
+    ['medFebuxostat','medKafun','medVitamin','medMineral','medDHA',
+     'water2L','workout','stretching','sauna'].forEach(id => {
+        document.getElementById(id).checked = false;
+    });
+    document.getElementById('sleepTime').value     = '';
+    document.getElementById('wakeTime').value      = '';
+    document.getElementById('phoneFreeTime').value = '';
+    document.getElementById('steps').value         = '';
+    document.getElementById('mealBreakfast').value = '';
+    document.getElementById('mealLunch').value     = '';
+    document.getElementById('mealDinner').value    = '';
+    restoreChips('meals',   'good');
+    restoreChips('alcohol', 'none');
+}
 
-    // Body score
+function renderToday() {
+    const entry = getEntryForDate(selectedDate);
+    const isToday = (selectedDate === todayKey());
+    const after8  = new Date().getHours() >= 8;
+    document.getElementById('reminderBanner').style.display = (!getEntryForDate(todayKey()) && after8 && isToday) ? 'flex' : 'none';
+    document.getElementById('navDot').style.display         = (!getEntryForDate(todayKey()) && after8) ? 'block' : 'none';
+
+    if (!entry) { resetForm(); checkSleepCapture(); return; }
+
     if (entry.bodyScore !== null && entry.bodyScore !== undefined) {
-        bodyScoreVal    = entry.bodyScore;
+        bodyScoreVal     = entry.bodyScore;
         bodyScoreTouched = true;
         document.getElementById('bodyScore').value = entry.bodyScore;
         refreshBodyScoreDisplay();
+    } else {
+        bodyScoreVal     = null;
+        bodyScoreTouched = false;
+        document.getElementById('bodyScore').value = 70;
+        refreshBodyScoreDisplay();
     }
 
-    // 症状
     document.getElementById('symHead').checked       = !!entry.symHead;
     document.getElementById('symStomach').checked    = !!entry.symStomach;
     document.getElementById('symBack').checked       = !!entry.symBack;
@@ -778,8 +1156,9 @@ function renderToday() {
     document.getElementById('symCough').checked      = !!entry.symCough;
     document.getElementById('symRunnyNose').checked  = !!entry.symRunnyNose;
     document.getElementById('symMouthUlcer').checked = !!entry.symMouthUlcer;
+    document.getElementById('symJaw').checked        = !!entry.symJaw;
+    document.getElementById('symNote').value         = entry.symNote || '';
 
-    // Toggles
     document.getElementById('measured').checked      = !!entry.measured;
     document.getElementById('medFebuxostat').checked = !!entry.medFebuxostat;
     document.getElementById('medKafun').checked      = !!entry.medKafun;
@@ -791,25 +1170,30 @@ function renderToday() {
     document.getElementById('stretching').checked    = !!entry.stretching;
     document.getElementById('sauna').checked         = !!entry.sauna;
 
-    // Inputs
-    document.getElementById('weight').value         = entry.weight  ?? '';
-    document.getElementById('bodyFat').value        = entry.bodyFat ?? '';
-    document.getElementById('sleepTime').value      = entry.sleepTime     || '';
-    document.getElementById('wakeTime').value       = entry.wakeTime      || '';
-    document.getElementById('phoneFreeTime').value  = entry.phoneFreeTime || '';
-    document.getElementById('steps').value          = entry.steps > 0 ? entry.steps : '';
-    document.getElementById('mealNote').value       = entry.mealNote || '';
+    document.getElementById('weight').value          = entry.weight  ?? '';
+    document.getElementById('bodyFat').value         = entry.bodyFat ?? '';
+    document.getElementById('sleepTime').value       = entry.sleepTime     || '';
+    document.getElementById('wakeTime').value        = entry.wakeTime      || '';
+    document.getElementById('phoneFreeTime').value   = entry.phoneFreeTime || '';
+    document.getElementById('steps').value           = entry.steps > 0 ? entry.steps : '';
     document.getElementById('weightRow').style.display = entry.measured ? 'block' : 'none';
+
+    // 食事（新フィールド優先、旧mealNoteは後方互換）
+    document.getElementById('mealBreakfast').value = entry.mealBreakfast || '';
+    document.getElementById('mealLunch').value     = entry.mealLunch     || '';
+    document.getElementById('mealDinner').value    = entry.mealDinner    || (entry.mealNote || '');
 
     mealsVal   = entry.meals   || 'good';
     alcoholVal = entry.alcohol || 'none';
     restoreChips('meals',   mealsVal);
     restoreChips('alcohol', alcoholVal);
+
+    checkSleepCapture();
 }
 
 function readForm() {
     return {
-        date:          todayKey(),
+        date:          selectedDate,
         bodyScore:     bodyScoreTouched ? bodyScoreVal : null,
         measured:      document.getElementById('measured').checked,
         weight:        parseFloat(document.getElementById('weight').value)    || null,
@@ -822,6 +1206,8 @@ function readForm() {
         symCough:      document.getElementById('symCough').checked,
         symRunnyNose:  document.getElementById('symRunnyNose').checked,
         symMouthUlcer: document.getElementById('symMouthUlcer').checked,
+        symJaw:        document.getElementById('symJaw').checked,
+        symNote:       document.getElementById('symNote').value.trim(),
         medFebuxostat: document.getElementById('medFebuxostat').checked,
         medKafun:      document.getElementById('medKafun').checked,
         medVitamin:    document.getElementById('medVitamin').checked,
@@ -835,7 +1221,9 @@ function readForm() {
         wakeTime:      document.getElementById('wakeTime').value       || null,
         phoneFreeTime: document.getElementById('phoneFreeTime').value  || null,
         steps:         parseInt(document.getElementById('steps').value)|| 0,
-        mealNote:      document.getElementById('mealNote').value.trim(),
+        mealBreakfast: document.getElementById('mealBreakfast').value.trim(),
+        mealLunch:     document.getElementById('mealLunch').value.trim(),
+        mealDinner:    document.getElementById('mealDinner').value.trim(),
         meals:         mealsVal,
         alcohol:       alcoholVal,
     };
@@ -847,11 +1235,28 @@ function saveToday() {
     const all = loadAll();
     all[entry.date] = entry;
     saveAll(all);
-    updateHeader(entry.bodyScore);
-    document.getElementById('reminderBanner').style.display = 'none';
-    document.getElementById('navDot').style.display = 'none';
+
+    // 食事履歴を更新
+    if (entry.mealBreakfast) addToMealHistory('breakfast', entry.mealBreakfast);
+    if (entry.mealLunch)     addToMealHistory('lunch',     entry.mealLunch);
+    if (entry.mealDinner)    addToMealHistory('dinner',    entry.mealDinner);
+
+    // 今日の記録保存時は就寝記録をクリア
+    if (entry.sleepTime && entry.date === todayKey()) {
+        localStorage.removeItem(SLEEP_CAP_KEY);
+        document.getElementById('sleepPreFill').style.display = 'none';
+    }
+
+    if (entry.date === todayKey()) {
+        updateHeader(entry.bodyScore);
+        document.getElementById('reminderBanner').style.display = 'none';
+        document.getElementById('navDot').style.display = 'none';
+    }
+
+    const isToday = entry.date === todayKey();
+    const label   = isToday ? '今日' : entry.date;
     const scoreText = entry.bodyScore !== null ? `体調: ${entry.bodyScore}点` : `習慣: ${entry.habitScore}点`;
-    showToast(`保存しました！${scoreText}`);
+    showToast(`${label}の記録を保存しました（${scoreText}）`);
 }
 
 // ════════ Score View ════════
@@ -868,7 +1273,8 @@ function renderScore() {
     const entry = getTodayEntry();
     const el = document.getElementById('scoreContent');
     if (!entry) {
-        el.innerHTML = `<div class="empty"><div class="ei">📋</div><p>「今日」タブで記録を入力すると<br>スコアが表示されます</p></div>`;
+        const label = selectedDate === todayKey() ? '「今日」タブで記録を入力すると' : 'この日の記録がありません';
+        el.innerHTML = `<div class="empty"><div class="ei">📋</div><p>${label}<br>スコアが表示されます</p></div>`;
         return;
     }
 
@@ -885,6 +1291,19 @@ function renderScore() {
     const hasBodyScore = bs !== null && bs !== undefined;
     const displayScore = hasBodyScore ? bs : '--';
     const grade = hasBodyScore ? gradeOf(bs) : { g:'--', lbl:'体調点数を入力してください', color:'var(--muted)' };
+
+    const SYM = [
+        { key:'symHead',       icon:'🤕', label:'頭' },
+        { key:'symStomach',    icon:'🤢', label:'お腹' },
+        { key:'symBack',       icon:'🦴', label:'腰' },
+        { key:'symLeg',        icon:'🦵', label:'足' },
+        { key:'symThroat',     icon:'😮', label:'のど' },
+        { key:'symCough',      icon:'😷', label:'咳' },
+        { key:'symRunnyNose',  icon:'🤧', label:'鼻水' },
+        { key:'symMouthUlcer', icon:'😬', label:'口内炎' },
+        { key:'symJaw',        icon:'🦷', label:'顎' },
+    ];
+    const activeSym = SYM.filter(s => entry[s.key]);
 
     el.innerHTML = `
         <div class="card">
@@ -907,40 +1326,23 @@ function renderScore() {
             <div class="stat-card"><div class="n">${bestBody || '--'}</div><div class="l">体調最高点</div></div>
         </div>
 
-        ${(() => {
-            const SYM = [
-                { key:'symHead',       icon:'🤕', label:'頭' },
-                { key:'symStomach',    icon:'🤢', label:'お腹' },
-                { key:'symBack',       icon:'🦴', label:'腰' },
-                { key:'symLeg',        icon:'🦵', label:'足' },
-                { key:'symThroat',     icon:'😮', label:'のど' },
-                { key:'symCough',      icon:'😷', label:'咳' },
-                { key:'symRunnyNose',  icon:'🤧', label:'鼻水' },
-                { key:'symMouthUlcer', icon:'😬', label:'口内炎' },
-            ];
-            const active = SYM.filter(s => entry[s.key]);
-            if (active.length === 0) return `
-                <div class="card">
-                    <div class="card-hdr">症状</div>
-                    <div class="card-body" style="padding-top:12px;padding-bottom:12px;">
-                        <span style="font-size:14px;color:var(--success);font-weight:600;">✅ 症状なし</span>
-                    </div>
-                </div>`;
-            return `
-                <div class="card">
-                    <div class="card-hdr">症状</div>
-                    <div class="card-body" style="padding-top:12px;">
-                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                            ${active.map(s => `
-                                <span style="display:inline-flex;align-items:center;gap:4px;
-                                    background:#FEE2E2;color:#991B1B;border-radius:20px;
-                                    padding:5px 12px;font-size:13px;font-weight:600;">
-                                    ${s.icon} ${s.label}
-                                </span>`).join('')}
-                        </div>
-                    </div>
-                </div>`;
-        })()}
+        <div class="card">
+            <div class="card-hdr">症状</div>
+            <div class="card-body" style="padding-top:12px;">
+                ${activeSym.length === 0
+                    ? `<span style="font-size:14px;color:var(--success);font-weight:600;">✅ 症状なし</span>`
+                    : `<div style="display:flex;flex-wrap:wrap;gap:8px;">
+                        ${activeSym.map(s => `
+                            <span style="display:inline-flex;align-items:center;gap:4px;
+                                background:#FEE2E2;color:#991B1B;border-radius:20px;
+                                padding:5px 12px;font-size:13px;font-weight:600;">
+                                ${s.icon} ${s.label}
+                            </span>`).join('')}
+                       </div>`
+                }
+                ${entry.symNote ? `<div style="margin-top:10px;font-size:13px;color:var(--text);line-height:1.6;background:#FFF7ED;border-radius:10px;padding:10px 12px;">${entry.symNote}</div>` : ''}
+            </div>
+        </div>
 
         <div class="card">
             <div class="card-hdr">習慣スコア内訳</div>
@@ -1123,6 +1525,80 @@ function renderGraphStats() {
 
 function renderGraph() { setTimeout(drawChart, 60); }
 
+// ════════ Export View ════════
+function renderExport() {
+    const all = loadAll();
+    const entries = Object.values(all);
+    const bodyEntries = entries.filter(e => e.bodyScore !== null && e.bodyScore !== undefined);
+    const goodDays = bodyEntries.filter(e => e.bodyScore >= 80).length;
+    const badDays  = bodyEntries.filter(e => e.bodyScore < 60).length;
+    document.getElementById('exportStats').innerHTML = `
+        <div class="data-stat"><div class="n">${entries.length}</div><div class="l">総記録日数</div></div>
+        <div class="data-stat"><div class="n">${goodDays}</div><div class="l">好調日（80点〜）</div></div>
+        <div class="data-stat"><div class="n">${badDays}</div><div class="l">不調日（60点未満）</div></div>
+    `;
+}
+
+function exportData() {
+    const all     = loadAll();
+    const entries = Object.values(all).sort((a,b) => a.date.localeCompare(b.date));
+    const mealHist = getMealHistory();
+
+    // 好調・不調日の前後1週間を分析用にマーク
+    const bodyEntries = entries.filter(e => e.bodyScore !== null && e.bodyScore !== undefined);
+    const goodDates = new Set(bodyEntries.filter(e => e.bodyScore >= 80).map(e => e.date));
+    const badDates  = new Set(bodyEntries.filter(e => e.bodyScore < 60).map(e => e.date));
+
+    function surroundingDates(targetDate, days) {
+        const result = [];
+        const base = new Date(targetDate + 'T00:00:00');
+        for (let i = -days; i <= days; i++) {
+            const d = new Date(base); d.setDate(d.getDate() + i);
+            result.push(dateKey(d));
+        }
+        return result;
+    }
+
+    const analysisWindows = [];
+    for (const d of goodDates) {
+        const window = surroundingDates(d, 7).map(dk => all[dk]).filter(Boolean);
+        if (window.length > 0) analysisWindows.push({ type:'good', centerDate:d, centerScore: all[d]?.bodyScore, entries: window });
+    }
+    for (const d of badDates) {
+        const window = surroundingDates(d, 7).map(dk => all[dk]).filter(Boolean);
+        if (window.length > 0) analysisWindows.push({ type:'bad', centerDate:d, centerScore: all[d]?.bodyScore, entries: window });
+    }
+
+    const exportPayload = {
+        exportedAt:  new Date().toISOString(),
+        totalDays:   entries.length,
+        allEntries:  entries,
+        mealHistory: mealHist,
+        analysisWindows,
+        instructions: '体調管理責任者へ：analysisWindowsのtypeがgoodの中心日前後7日間に何をしているか、typeがbadの中心日前後7日間に何をしているかを比較し、体調に影響している習慣をアドバイスしてください。',
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const today = todayKey();
+    a.href     = url;
+    a.download = `health-data-${today}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('書き出しました！保存先フォルダに移動してください');
+}
+
+function confirmClearData() {
+    if (confirm('全データを削除しますか？\nこの操作は元に戻せません。')) {
+        localStorage.removeItem(KEY);
+        localStorage.removeItem(MEAL_HIST_KEY);
+        localStorage.removeItem(SLEEP_CAP_KEY);
+        showToast('データを削除しました');
+        renderExport();
+    }
+}
+
 // ════════ Header ════════
 function updateHeader(bodyScore) {
     const badge = document.getElementById('hdrBadge');
@@ -1155,7 +1631,7 @@ function scheduleNext8am() {
     next.setHours(8, 0, 0, 0);
     if (now >= next) next.setDate(next.getDate() + 1);
     setTimeout(() => {
-        if (!getTodayEntry()) {
+        if (!getEntryForDate(todayKey())) {
             new Notification('体調トラッカー ⏰', {
                 body: '今日の体調点数と記録をつけましょう！',
                 tag: 'daily-reminder', renotify: true,
@@ -1168,11 +1644,13 @@ function scheduleNext8am() {
 // ════════ Init ════════
 function init() {
     const now = new Date();
-    const wd = ['日','月','火','水','木','金','土'];
+    const wd  = ['日','月','火','水','木','金','土'];
     document.getElementById('headerDate').textContent =
         `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${wd[now.getDay()]}）`;
 
-    const entry = getTodayEntry();
+    initDatePicker();
+
+    const entry = getEntryForDate(todayKey());
     if (entry) {
         updateHeader(entry.bodyScore);
         renderToday();
@@ -1180,6 +1658,7 @@ function init() {
         const after8 = now.getHours() >= 8;
         document.getElementById('reminderBanner').style.display = after8 ? 'flex' : 'none';
         document.getElementById('navDot').style.display = after8 ? 'block' : 'none';
+        checkSleepCapture();
     }
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
